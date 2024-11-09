@@ -66,6 +66,16 @@ nearley = ["js2py"]
 regex = ["regex"]
 
 [[package]]
+name = "mathutils"
+version = "3.3.0"
+description = "A general math utilities library providing Matrix, Vector, Quaternion, Euler and Color classes, written in C for speed."
+optional = false
+python-versions = "*"
+files = [
+    {file = "mathutils-3.3.0.tar.gz", hash = "sha256:b9371af8149f3f3f05ee165cb583b2df7b3fbc9935406d1c505a5276b8e563af"},
+]
+
+[[package]]
 name = "numpy"
 version = "2.1.3"
 description = "Fundamental package for array computing in Python"
@@ -226,4 +236,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.13"
-content-hash = "0277ce6fbe8265233f7d30c53d8c4a3bf47fa50881f9e3565d6200745a5797bd"
+content-hash = "cde21a8a155e3f1d3b5327aa318a841a32d39c42f266fa551d067488c7a5cc11"
