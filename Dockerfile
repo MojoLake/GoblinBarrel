@@ -1,20 +1,14 @@
-# Use a specific Python version
 FROM python:3.12
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.local/bin:$PATH"
+ENV PIP_DISABLE_PIP_VERSION_CHECK=on
 
-# Set the working directory
+RUN pip install poetry
+
 WORKDIR /app
+COPY poetry.lock pyproject.toml /app/
 
-# Copy Poetry files and install dependencies
-COPY pyproject.toml poetry.lock ./
-RUN poetry install --no-root
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-interaction
 
-# Copy the rest of the application code
-COPY . .
-
-# Default command
-CMD ["poetry", "run", "python", "main.py"]
+COPY . /app
 
