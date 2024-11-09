@@ -2,9 +2,26 @@ import ifcopenshell
 
 file_path = "./data/test.ifc"
 output_path = "./data/output.ifc"
+def do_geometry(ifc_file):
+    settings = ifcopenshell.geom.settings()
+    settings.set(settings.USE_WORLD_COORDS, True)
+
+
+    walls = ifc_file.by_type("IfcWallStandardCase")
+
+    wall = walls[0]
+
+    wall_shape = ifcopenshell.geom.create_shape(settings, wall)
+
+    vertices = wall_shape.geometry.verts
+    edges = wall_shape.geometry.edges
+
+    print("Vertices", vertices)
+    print("Edges", edges)
+
 
 def main():
-    # Open the IFC file
+
     demo_file = ifcopenshell.open(file_path)
 
     # Find all columns in the IFC file
