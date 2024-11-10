@@ -14,6 +14,7 @@ import ifcopenshell.api.project
 import ifcopenshell.api.geometry
 
 from handle_file import beam_and_columns
+from filter_functions import filter_furnishment, filter_low_volume_elements
 
 class GeometricSpace:
     def __init__(self, elements):
@@ -84,12 +85,6 @@ class Vertice:
         return self.z >= another.z
 
 
-def filter_furnishment(ifc_file):
-    remove = []
-    furnish = ifc_file.by_type("IfcFurnishingElement")
-
-    for element in furnish:
-        ifc_file.remove(element)
 
 
 def remove_too_close_ones(vertices, distance_too_close):
@@ -178,6 +173,9 @@ def main():
 
     print("Filtering furnishment away...")
     filter_furnishment(model)
+
+    print("Filtering according to volume")
+    filter_low_volume_elements(model, volume_threshold=5)
     
     print("Finding beams and columns")
     beams, columns = beam_and_columns(model)
