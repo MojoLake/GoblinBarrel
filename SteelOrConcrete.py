@@ -47,14 +47,26 @@ def material_identifier(id1,id2, ifcFile):
 
 
 
-
 def main():
+    #file_path = "./data/Ifc2x3_Duplex_Architecture.ifc"
     file_path = "./data/test.ifc"
     ifc_file = ifcopenshell.open(file_path)
     beams = list(map(lambda x: x.id() ,ifc_file.by_type("IfcBeam")))
 
-    print(material_identifier(beams[0], beams[1], ifc_file))
+    # Loop through pairs of beams to find a concrete-concrete pair
+    found = False
+    for i in range(len(beams)):
+        for j in range(i + 1, len(beams)):
+            mat1, mat2 = material_identifier(beams[i], beams[j], ifc_file)
+            if mat1 == "concrete" or mat2 == "concrete":
+                print(f"Found concrete-concrete pair: Beam {beams[i]} and Beam {beams[j]}")
+                found = True
+                break
+        if found:
+            break
 
+    if not found:
+        print("No concrete-concrete pair found.")
 
 if __name__ == "__main__":
     main()
