@@ -53,7 +53,7 @@ def main():
     ifc_file = ifcopenshell.open(file_path)
     beams = list(map(lambda x: x.id() ,ifc_file.by_type("IfcBeam")))
 
-    print(SteelOrConcrete(beams[0], beams[1], ifc_file))
+    print(material_identifier(beams[0], beams[1], ifc_file))
 
 
 if __name__ == "__main__":
