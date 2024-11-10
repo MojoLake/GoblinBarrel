@@ -9,7 +9,7 @@ def filter_furnishment(ifc_file):
         ifc_file.remove(element)
 
 
-def filter_low_volume_elements(ifc_file, volume_threshold=10):
+def filter_low_volume_elements(ifc_file, volume_threshold=10.0):
     """
     Returns a list of columns and beams that have a Volume property less than the specified threshold.
     

@@ -166,7 +166,7 @@ def mark_vertices(model, vertices_to_mark, output_file_name):
 
 def main():
     print("Program starting...")
-    file_path = "./data/Ifc2x3_Duplex_Architecture.ifc"
+    file_path = "./data/WoodenOffice.ifc"
 
     print("Opening file...")
     model = ifcopenshell.open(file_path)
@@ -175,7 +175,7 @@ def main():
     filter_furnishment(model)
 
     print("Filtering according to volume")
-    filter_low_volume_elements(model, volume_threshold=5)
+    filter_low_volume_elements(model, volume_threshold=0.01)
     
     print("Finding beams and columns")
     beams, columns = beam_and_columns(model)
