@@ -92,20 +92,23 @@ def filter_furnishment(ifc_file):
         ifc_file.remove(element)
 
 
+def remove_too_close_ones(vertices, distance_too_close):
+    okays = []
+    for i in range(len(vertices)):
+        v = vertices[i]
+        fail = False
+        for u in okays:
+            if u.distance_to(v) <= distance_too_close:
+                fail = True
+                break
+
+        if not fail:
+            okays.append(v)
+
+    return okays
 
 
-def main():
-    
-    print("Program starting...")
-    file_path = "./Ifc2x3_Duplex_Architecture.ifc"
-    model = ifcopenshell.open(file_path)
-    print("File opened!")
-    filter_furnishment(model)
-    beams, columns = beam_and_columns(model)
-    print("found beams and columns")
-    print("Length of beams:", len(beams))
-    print("Length of columns:", len(columns))
-
+def find_vertices_close_to_others(beams, columns, distance=30, distance_too_close=3):
     elements = []
 
     for id, vertices in beams.items():
@@ -125,62 +128,33 @@ def main():
     vertices_to_highlight = []
 
     for element in elements:
-        # close = space.find_close_elements(element, 10) 
-        # print("Amount close")
-        # print(len(close))
-        to_highlight = space.find_vertices_to_highlight(element, 30)
+        to_highlight = space.find_vertices_to_highlight(element, distance)
         vertices_to_highlight.extend(to_highlight)
+
         print("for this element amount of vertices to highlight:", len(to_highlight))
 
-    print("Len of vertices_to_highlight before filtering:", len(vertices_to_highlight))
-    okays = []
-    for i in range(len(vertices_to_highlight)):
-        v = vertices_to_highlight[i]
-        fail = False
-        for u in okays:
-            if u.distance_to(v) <= 3:
-                fail = True
-                break
+    return remove_too_close_ones(vertices_to_highlight, distance_too_close)
 
-        if not fail:
-            okays.append(v)
-
-    vertices_to_highlight = set(okays)
-
-    # for v in vertices_to_highlight:
-    #     print(v.x, v.y, v.z)
-
-    # We want our representation to be the 3D body of the element.
-    # This representation context is only created once per project.
-    # You must reuse the same body context every time you create a new representation.
+def mark_vertices(model, vertices_to_mark, output_file_name):
 
     building_storey = model.by_type("IfcBuildingStorey")[0]
     model3d = ifcopenshell.api.context.add_context(model, context_type="Model")
-    body = ifcopenshell.api.context.add_context(model,
-    context_type="Model", context_identifier="Body", target_view="MODEL_VIEW", parent=model3d)
+    body = ifcopenshell.api.context.add_context(model, context_type="Model", context_identifier="Body", target_view="MODEL_VIEW", parent=model3d)
 
-# These vertices and faces represent a .2m square .5m high upside down pyramid in SI units.
-# Note how they are nested lists. Each nested list represents a "mesh". There may be multiple meshes.
     vertices = [[(0.,0.,2.5), (0.,.6,2.5), (.6,.6,2.5), (.6,0.,2.5), (.3,.3,0.)]]
-    # vertices = [[(0.,0.,1.5), (0.,.6,1.5), (.6,.6,1.5), (.6,0.,1.5), (0., 0., 0.), (0., .6, 0.), (.6, .6, 0.), (.6, 0., 0.)]]
-    # faces = [[(0, 1, 2, 3), (4, 5, 6, 7), (0, 4, 7, 3), (1, 5, 4, 0), (2, 6, 5, 1), (3, 7, 6,2)]]
     faces = [[(0,1,2,3), (0,4,1), (1,4,2), (2,4,3), (3,4,0)]]
+
     representation = ifcopenshell.api.geometry.add_mesh_representation(model, context=body, vertices=vertices, faces=faces)
 
     beams = model.by_type("IfcBeam")
     columns = model.by_type("IfcColumn")
 
 
-    print("Length of vertices to hightlight:", len(vertices_to_highlight))
-
-    # Create a new IFC entity for each clash
-    # Yoy'll need to have Blender python library (bpy) installed to run this part of the code
-    for collision in vertices_to_highlight:
+    for vertice in vertices_to_mark:
         matrix = numpy.eye(4)
-        # matrix[:,3][0:3] = list(collision.p1)
-        matrix[:,3][0] = collision.x
-        matrix[:,3][1] = collision.y
-        matrix[:,3][2] = collision.z
+        matrix[:,3][0] = vertice.x
+        matrix[:,3][1] = vertice.y
+        matrix[:,3][2] = vertice.z
 
 
         element = ifcopenshell.api.root.create_entity(model, ifc_class="IfcElementAssembly", name="elias")
@@ -192,12 +166,29 @@ def main():
         ifcopenshell.api.geometry.edit_object_placement(model, product=element, matrix=matrix)
         ifcopenshell.api.geometry.assign_representation(model, product=element, representation=representation)
 
-    # Save the new IFC file
-    model.write("please_work.ifc")
+    model.write(output_file_name)
 
+
+def main():
+    print("Program starting...")
+    file_path = "./data/Ifc2x3_Duplex_Architecture.ifc"
+
+    print("Opening file...")
+    model = ifcopenshell.open(file_path)
+
+    print("Filtering furnishment away...")
+    filter_furnishment(model)
     
+    print("Finding beams and columns")
+    beams, columns = beam_and_columns(model)
 
+    print("Detecting vertices to mark...")
+    vertices_to_mark = set(find_vertices_close_to_others(beams, columns, 30, 3))
 
+    output_file_name = "output.ifc"
+
+    print("Marking vertices with pyramids...")
+    mark_vertices(model, vertices_to_mark, output_file_name)
 
 
 
